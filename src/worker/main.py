@@ -47,11 +47,17 @@ def _configure_logging() -> None:
 
     log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 
+    def _rename_level(logger: object, method: str, event_dict: dict) -> dict:
+        # Rename log_level → level to match Java structured log field names
+        if "log_level" in event_dict:
+            event_dict["level"] = event_dict.pop("log_level")
+        return event_dict
+
     structlog.configure(
         processors=[
             structlog.stdlib.add_log_level,
-            structlog.stdlib.add_logger_name,
             structlog.processors.TimeStamper(fmt="iso"),
+            _rename_level,
             _redact_pii,
             structlog.processors.JSONRenderer(),
         ],
