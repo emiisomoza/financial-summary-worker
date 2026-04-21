@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Financial Summary</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F3F4F6;
+      color: #111827;
+    }
+    .wrapper { max-width: 600px; margin: 32px auto; }
+    .header {
+      background: #2563EB;
+      border-radius: 12px 12px 0 0;
+      padding: 32px 36px 24px;
+      color: white;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 13px; opacity: 0.8; }
+    .body {
+      background: white;
+      padding: 32px 36px;
+    }
+    .greeting { font-size: 16px; margin-bottom: 24px; color: #374151; }
+
+    /* ── KPI grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .kpi {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; margin-bottom: 6px; }
+    .kpi-value { font-size: 24px; font-weight: 700; color: #111827; }
+    .kpi-value.positive { color: #16A34A; }
+    .kpi-value.negative { color: #DC2626; }
+    .kpi-value.highlight { color: #2563EB; }
+    .kpi-sub { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+
+    /* ── Total assets (full-width) ── */
+    .kpi-wide {
+      grid-column: 1 / -1;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+    }
+    .kpi-wide .kpi-value { font-size: 30px; }
+
+    /* ── Charts ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B7280;
+      margin-bottom: 12px;
+    }
+    .chart-block { margin-bottom: 28px; }
+    .chart-block img { width: 100%; border-radius: 8px; }
+    .chart-placeholder {
+      background: #F9FAFB;
+      border: 1px dashed #D1D5DB;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #9CA3AF;
+      font-size: 13px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #F9FAFB;
+      border-radius: 0 0 12px 12px;
+      border-top: 1px solid #E5E7EB;
+      padding: 20px 36px;
+      font-size: 11px;
+      color: #9CA3AF;
+      text-align: center;
+    }
+    .divider { border: none; border-top: 1px solid #E5E7EB; margin: 24px 0; }
+
+    /* ── Unpriced assets warning ── */
+    .warning {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #92400E;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Financial Summary</h1>
+    <p>{{ generated_at_formatted }} &middot; {{ currency }}</p>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <p class="greeting">Hi <strong>{{ user_name }}</strong>, here's your latest financial snapshot.</p>
+
+    {% if unpriced_assets_count > 0 %}
+    <div class="warning">
+      &#9888; {{ unpriced_assets_count }} asset{{ 's' if unpriced_assets_count != 1 }} could not be priced and
+      {{ 'are' if unpriced_assets_count != 1 else 'is' }} excluded from your total assets value.
+    </div>
+    {% endif %}
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid">
+
+      <div class="kpi kpi-wide">
+        <div class="kpi-label">Total Assets Value</div>
+        <div class="kpi-value highlight">{{ currency }} {{ total_assets_value }}</div>
+        <div class="kpi-sub">Market + manually valued assets</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">Monthly Income</div>
+        <div class="kpi-value positive">{{ currency }} {{ monthly_income }}</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">Monthly Expenses</div>
+        <div class="kpi-value negative">{{ currency }} {{ monthly_expenses }}</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">Monthly Savings</div>
+        <div class="kpi-value {% if monthly_savings_raw >= 0 %}positive{% else %}negative{% endif %}">
+          {{ currency }} {{ monthly_savings }}
+        </div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">Savings Rate</div>
+        <div class="kpi-value {% if savings_rate_pct >= 20 %}positive{% elif savings_rate_pct >= 0 %}highlight{% else %}negative{% endif %}">
+          {{ savings_rate_pct }}%
+        </div>
+        <div class="kpi-sub">of monthly income</div>
+      </div>
+
+    </div>
+
+    <hr class="divider">
+
+    <!-- Charts -->
+    <p class="section-title">Trends</p>
+
+    {% if charts_available %}
+
+      {% if savings_rate_chart %}
+      <div class="chart-block">
+        <img src="data:image/png;base64,{{ savings_rate_chart }}" alt="Savings rate trend chart">
+      </div>
+      {% endif %}
+
+      {% if income_expense_chart %}
+      <div class="chart-block">
+        <img src="data:image/png;base64,{{ income_expense_chart }}" alt="Income vs expenses chart">
+      </div>
+      {% endif %}
+
+    {% else %}
+    <div class="chart-placeholder">
+      Charts will appear once you accumulate more summaries with the same currency settings.
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    You're receiving this because you subscribed to financial summaries on Financial Hub.<br>
+    This summary was generated on {{ generated_at_formatted }} UTC.
+  </div>
+
+</div>
+</body>
+</html>

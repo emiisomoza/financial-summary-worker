@@ -1,0 +1,89 @@
+"""
+Tests for charts.py (matplotlib chart generation).
+
+We verify that:
+- Charts return None when history is too short (< 2 points)
+- Charts return a valid base64 PNG string when data is sufficient
+- The base64 string can be decoded back to bytes (i.e., it's a real image)
+"""
+
+import base64
+import pytest
+
+from worker.charts import income_expense_chart, savings_rate_chart
+from worker.models import SummaryMessage
+
+_BASE_PAYLOAD = {
+    "userId": "123e4567-e89b-12d3-a456-426614174000",
+    "userEmail": "alice@example.com",
+    "userName": "Alice Doe",
+    "totalAssetsValue": "100000.00",
+    "monthlyIncome": "8000.00",
+    "monthlyExpenses": "5500.00",
+    "monthlySavings": "2500.00",
+    "savingsRate": "0.3125",
+    "unpricedAssetsCount": 0,
+    "currency": "AUD",
+    "generatedAt": "2026-01-01T09:00:00Z",
+}
+
+
+def _make_msg(month: int) -> SummaryMessage:
+    return SummaryMessage.model_validate(
+        {**_BASE_PAYLOAD, "generatedAt": f"2026-{month:02d}-01T09:00:00Z"}
+    )
+
+
+def _history(n: int) -> list[SummaryMessage]:
+    return [_make_msg(i + 1) for i in range(n)]
+
+
+# ── savings_rate_chart ────────────────────────────────────────────────────────
+
+def test_savings_rate_chart_returns_none_for_empty_history():
+    assert savings_rate_chart([]) is None
+
+
+def test_savings_rate_chart_returns_none_for_single_entry():
+    assert savings_rate_chart(_history(1)) is None
+
+
+def test_savings_rate_chart_returns_base64_string_for_two_entries():
+    result = savings_rate_chart(_history(2))
+    assert result is not None
+    assert isinstance(result, str)
+    # Must be valid base64
+    decoded = base64.b64decode(result)
+    assert decoded[:4] == b"\x89PNG"  # PNG magic bytes
+
+
+def test_savings_rate_chart_works_with_many_entries():
+    result = savings_rate_chart(_history(12))
+    assert result is not None
+    decoded = base64.b64decode(result)
+    assert decoded[:4] == b"\x89PNG"
+
+
+# ── income_expense_chart ──────────────────────────────────────────────────────
+
+def test_income_expense_chart_returns_none_for_empty_history():
+    assert income_expense_chart([], "AUD") is None
+
+
+def test_income_expense_chart_returns_none_for_single_entry():
+    assert income_expense_chart(_history(1), "AUD") is None
+
+
+def test_income_expense_chart_returns_base64_string_for_two_entries():
+    result = income_expense_chart(_history(2), "AUD")
+    assert result is not None
+    assert isinstance(result, str)
+    decoded = base64.b64decode(result)
+    assert decoded[:4] == b"\x89PNG"
+
+
+def test_income_expense_chart_works_with_many_entries():
+    result = income_expense_chart(_history(12), "USD")
+    assert result is not None
+    decoded = base64.b64decode(result)
+    assert decoded[:4] == b"\x89PNG"
