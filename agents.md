@@ -1,5 +1,7 @@
 # financial-summary-worker — Agent Documentation
 
+> **Maintenance note:** This file and [README.md](README.md) must be kept up to date as the project evolves. When adding a new module, changing a design decision, or modifying the pipeline, update both documents to reflect the current state.
+
 ## Role in the system
 
 `financial-summary-worker` is the **email notification agent** of the Financial Hub platform. It runs as a standalone Python service alongside the Java `finantial-profile-api` and is responsible for the entire email delivery pipeline: consuming summary snapshots from RabbitMQ, building historical trend charts, rendering an HTML email, and sending it to the user.
