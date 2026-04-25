@@ -8,8 +8,14 @@ Async email notification worker built in **Python**. Consumes financial summary 
 
 This service is part of a larger financial portfolio system:
 - ☕ **[Financial Profile API](https://github.com/emiisomoza/finantial-profile-api)** — Java/Spring Boot: manages users, income, expenses and assets
-- 💱 **Price API** — Ruby/Sinatra: resolves real-time asset prices
+- 💱 **[financial-price-api](https://github.com/emiisomoza/financial-price-api)** — Ruby/Sinatra: resolves real-time asset prices
 - 🐍 **financial-summary-worker** (this repo) — Python: consumes a queue and sends summary emails
+
+---
+
+## Email preview
+
+![Email preview](docs/email-preview.png)
 
 ---
 
