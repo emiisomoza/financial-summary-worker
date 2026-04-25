@@ -46,6 +46,25 @@ def _date_labels(history: list[SummaryMessage]) -> list[str]:
     return [msg.generated_at.strftime("%d %b") for msg in history]
 
 
+def _last_per_month(history: list[SummaryMessage]) -> list[SummaryMessage]:
+    """
+    Collapse history to one snapshot per calendar month — the most recent one.
+
+    Why: income/expenses are monthly aggregates regardless of subscription frequency.
+    Plotting weekly snapshots in a bar chart would produce near-identical bars for
+    the same month, making the chart misleading. Taking the last snapshot of each
+    month gives the most complete picture of that month's figures.
+
+    Order is preserved oldest-first (same as the input).
+    """
+    monthly: dict[tuple[int, int], SummaryMessage] = {}
+    for msg in history:
+        key = (msg.generated_at.year, msg.generated_at.month)
+        # later entries overwrite earlier ones — keeps the most recent per month
+        monthly[key] = msg
+    return list(monthly.values())
+
+
 def savings_rate_chart(history: list[SummaryMessage]) -> str | None:
     """
     Line chart: savings rate (%) over time.
@@ -75,14 +94,21 @@ def savings_rate_chart(history: list[SummaryMessage]) -> str | None:
 def income_expense_chart(history: list[SummaryMessage], currency: str) -> str | None:
     """
     Grouped bar chart: monthly income vs. monthly expenses over time.
-    Returns base64 PNG or None if fewer than 2 data points.
+
+    History is collapsed to one point per calendar month (last snapshot of each
+    month) before plotting. This ensures the bar chart always compares full
+    monthly figures — weekly subscribers won't see near-identical bars for
+    the same month, and mixed-frequency histories stay visually consistent.
+
+    Returns base64 PNG or None if fewer than 2 distinct months in history.
     """
-    if len(history) < 2:
+    monthly = _last_per_month(history)
+    if len(monthly) < 2:
         return None
 
-    labels = _date_labels(history)
-    incomes = [float(msg.monthly_income) for msg in history]
-    expenses = [float(msg.monthly_expenses) for msg in history]
+    labels = [msg.generated_at.strftime("%b %Y") for msg in monthly]
+    incomes = [float(msg.monthly_income) for msg in monthly]
+    expenses = [float(msg.monthly_expenses) for msg in monthly]
 
     x = range(len(labels))
     bar_width = 0.35
