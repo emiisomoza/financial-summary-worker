@@ -4,7 +4,7 @@ Python worker that consumes financial summary snapshots from RabbitMQ and sends 
 
 ## What it does
 
-1. Consumes messages from `summary.notifications` (published by the Java `finantial-profile-api`)
+1. Consumes messages from `summary.notifications` (published by the Java `financial-profile-api`)
 2. Validates and persists each snapshot in SQLite (historical data for charts)
 3. Generates two matplotlib charts: savings rate trend + monthly income vs. expenses
 4. Renders an HTML email via Jinja2 (auto-escaped, XSS-safe)
@@ -76,10 +76,10 @@ No external services needed — tests use an in-memory SQLite DB and mock all I/
 
 ## Docker
 
-Built and run as part of the `finantial-profile-api` Docker Compose stack:
+Built and run as part of the `financial-profile-api` Docker Compose stack:
 
 ```bash
-# From finantial-profile-api/
+# From financial-profile-api/
 docker compose up
 ```
 

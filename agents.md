@@ -4,7 +4,7 @@
 
 ## Role in the system
 
-`financial-summary-worker` is the **email notification agent** of the Financial Hub platform. It runs as a standalone Python service alongside the Java `finantial-profile-api` and is responsible for the entire email delivery pipeline: consuming summary snapshots from RabbitMQ, building historical trend charts, rendering an HTML email, and sending it to the user.
+`financial-summary-worker` is the **email notification agent** of the Financial Hub platform. It runs as a standalone Python service alongside the Java `financial-profile-api` and is responsible for the entire email delivery pipeline: consuming summary snapshots from RabbitMQ, building historical trend charts, rendering an HTML email, and sending it to the user.
 
 It has no REST API and no direct contact with the PostgreSQL database. Its only inputs are RabbitMQ messages; its only output is an SMTP email.
 
@@ -13,7 +13,7 @@ It has no REST API and no direct contact with the PostgreSQL database. Its only 
 ## System context
 
 ```
-finantial-profile-api (Java)
+financial-profile-api (Java)
   SummaryScheduler ──triggers──► SummaryService + UserService
                                         │
                                   SummaryPublisher
@@ -145,4 +145,4 @@ Failed messages go to `summary.notifications.dlq` via the `summary.dlx` exchange
 
 | Service | Repo | Role |
 |---------|------|------|
-| `finantial-profile-api` | [emiisomoza/finantial-profile-api](https://github.com/emiisomoza/finantial-profile-api) | Publishes to `summary.notifications`; declares DLQ topology |
+| `financial-profile-api` | [emiisomoza/financial-profile-api](https://github.com/emiisomoza/financial-profile-api) | Publishes to `summary.notifications`; declares DLQ topology |
