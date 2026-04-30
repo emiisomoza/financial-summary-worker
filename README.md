@@ -7,7 +7,7 @@
 Async email notification worker built in **Python**. Consumes financial summary snapshots from RabbitMQ, generates trend charts, and delivers rich HTML emails to users.
 
 This service is part of a larger financial portfolio system:
-- ☕ **[Financial Profile API](https://github.com/emiisomoza/finantial-profile-api)** — Java/Spring Boot: manages users, income, expenses and assets
+- ☕ **[Financial Profile API](https://github.com/emiisomoza/financial-profile-api)** — Java/Spring Boot: manages users, income, expenses and assets
 - 💱 **[financial-price-api](https://github.com/emiisomoza/financial-price-api)** — Ruby/Sinatra: resolves real-time asset prices
 - 🐍 **financial-summary-worker** (this repo) — Python: consumes a queue and sends summary emails
 
